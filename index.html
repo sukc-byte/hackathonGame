@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdaptiveGame - Accessible Puzzle Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 50%, #16213e 100%);
+            font-family: 'Orbitron', 'Arial', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Animated background particles */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(78, 205, 196, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(0, 255, 0, 0.1) 0%, transparent 50%);
+            animation: backgroundPulse 10s ease-in-out infinite;
+        }
+        
+        @keyframes backgroundPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        #game-container {
+            box-shadow: 
+                0 0 40px rgba(78, 205, 196, 0.4),
+                0 0 80px rgba(78, 205, 196, 0.2),
+                0 20px 60px rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            border: 2px solid rgba(78, 205, 196, 0.3);
+        }
+        
+        /* Floating accessibility badge */
+        .accessibility-badge {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(15, 52, 96, 0.9);
+            border: 2px solid #4ecdc4;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+            animation: float 3s ease-in-out infinite;
+            z-index: 10;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* Info panel */
+        .info-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 52, 96, 0.9);
+            border: 2px solid #4ecdc4;
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: white;
+            font-size: 14px;
+            max-width: 250px;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+            z-index: 10;
+        }
+        
+        .info-panel h3 {
+            color: #4ecdc4;
+            margin-bottom: 10px;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .info-panel ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-panel li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .info-panel li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: #4ecdc4;
+        }
+        
+        /* Bottom feature bar */
+        .feature-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 52, 96, 0.9);
+            border: 2px solid #4ecdc4;
+            border-radius: 30px;
+            padding: 12px 30px;
+            display: flex;
+            gap: 25px;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(78, 205, 196, 0.5);
+            z-index: 10;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .feature-icon {
+            font-size: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        /* Screen reader only content */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        
+        /* Loading animation */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeOut 1s ease-out 2s forwards;
+        }
+        
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                pointer-events: none;
+            }
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(78, 205, 196, 0.3);
+            border-top-color: #4ecdc4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #4ecdc4;
+            font-size: 24px;
+            margin-top: 20px;
+            letter-spacing: 3px;
+            animation: fadeInOut 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .info-panel {
+                top: auto;
+                bottom: 80px;
+                right: 10px;
+                max-width: 200px;
+                font-size: 12px;
+            }
+            
+            .feature-bar {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading screen -->
+    <div class="loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">LOADING ADAPTIVE GAME</div>
+    </div>
+    
+    <!-- Accessibility badge -->
+    <div class="accessibility-badge" role="img" aria-label="Accessible game">
+        ♿
+    </div>
+    
+    <!-- Info panel -->
+    <div class="info-panel">
+        <h3>🎮 Controls</h3>
+        <ul>
+            <li>Arrow Keys / WASD</li>
+            <li>Voice Commands</li>
+            <li>Screen Reader</li>
+            <li>V - Toggle Voice</li>
+        </ul>
+    </div>
+    
+    <!-- Game container -->
+    <div id="game-container"></div>
+    
+    <!-- Feature bar -->
+    <div class="feature-bar">
+        <div class="feature-item">
+            <span class="feature-icon">👁️</span>
+            <span>Visual</span>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">🔊</span>
+            <span>Audio</span>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">📳</span>
+            <span>Haptic</span>
+        </div>
+        <div class="feature-item">
+            <span class="feature-icon">🎤</span>
+            <span>Voice</span>
+        </div>
+    </div>x 
+    
+    <!-- Screen Reader Announcements -->
+    <div id="sr-announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+    
+    <!-- Game Instructions for Screen Readers -->
+    <div class="sr-only">
+        <h1>AdaptiveGame - Accessible Puzzle Game</h1>
+        <p>Push boxes onto target positions to win. Use arrow keys, voice commands, or screen reader navigation.</p>
+        <p>Controls: Arrow keys to move. Press R to restart level. Press H for help.</p>
+        <p>This game is designed to be fully accessible for blind, deaf, and motor-impaired players.</p>
+    </div>
+    
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
